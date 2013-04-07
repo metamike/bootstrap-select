@@ -21,7 +21,7 @@ Create your `<select>` with the `.selectpicker` class.
     <select class="selectpicker">
       <option>Mustard</option>
       <option>Ketchup</option>
-      <option>Barbecue</option>
+      <option data-icon="bbq.png">Barbecue</option>
     </select>
     
 Enable Bootstrap-Select via JavaScript:

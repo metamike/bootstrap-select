@@ -144,6 +144,7 @@
                 var optionClass = $(this).attr("class") !== undefined ? $(this).attr("class") : '';
                	var text =  $(this).text();
                	var subtext = $(this).data('subtext') !== undefined ? '<small class="muted">'+$(this).data('subtext')+'</small>' : '';
+                var icon = $(this).data('icon') || null;
                 
                 //Append any subtext to the main text.
 		        text+=subtext;
@@ -159,20 +160,20 @@
                             _liA.push(
                                 '<div class="div-contain"><div class="divider"></div></div>'+
                                 '<dt>'+label+'</dt>'+ 
-                                _this.createA(text, "opt " + optionClass )
+                                _this.createA(text, icon, "opt " + optionClass )
                                 );
                         } else {
                             _liA.push(
                                 '<dt>'+label+'</dt>'+ 
-                                _this.createA(text, "opt " + optionClass ));
+                                _this.createA(text, icon, "opt " + optionClass ));
                         }
                     } else {
-                         _liA.push( _this.createA(text, "opt " + optionClass )  );
+                         _liA.push( _this.createA(text, icon, "opt " + optionClass )  );
                     }
                 } else if ($(this).data('divider') == true) {
                     _liA.push('<div class="div-contain"><div class="divider"></div></div>');
                 } else {
-                    _liA.push( _this.createA(text, optionClass ) );
+                    _liA.push( _this.createA(text, icon, optionClass ) );
                 }
             });
                
@@ -191,16 +192,24 @@
             return $(_liHtml);
         },
         
-        createA:function(test, classes) {
-         return '<a tabindex="-1" href="#" class="'+classes+'">' +
-                 '<span class="pull-left">' + test + '</span>' +
-                 '<i class="icon-ok check-mark"></i>' + 
-                 '</a>';
-                
+        createA:function(test, icon, classes) {
+            var html = '<a tabindex="-1" href="#" class="' + classes + '">';
+            if (icon) {
+                html = '<a tabindex="-1" href="#" data-icon="' + icon + '" class="' + classes + '">'
+                        + '<i style="background-image: url(' + icon + '); '
+                        + 'width: ' + this.options.iconSize + 'px; '
+                        + 'height: ' + this.options.iconSize + 'px; '
+                        + 'float: left; margin-top: 1px; margin-right: 3px;"></i>';
+            }
+            html += '<span class="pull-left">' + test + '</span>' +
+                    '<i class="icon-ok check-mark"></i>' +
+                  '</a>';
+            return html;
         },
         
          render:function() {
-	        var _this = this;
+	        var _this = this,
+                _options = this.options;
 
             //Set width of select
              if (this.options.width == 'auto') {
@@ -215,17 +224,21 @@
                _this.setDisabled(index, $(this).is(':disabled') || $(this).parent().is(':disabled') );
                _this.setSelected(index, $(this).is(':selected') );
             });
-            
-            
-            
+
             var selectedItems = this.$element.find('option:selected').map(function(index,value) {
-                if($(this).attr('title')!=undefined) {
+                var icon = $(this).data('icon');
+                if (icon) {
+                    return '<i style="background-image: url(' + icon + '); '
+                         + 'width: ' + _options.iconSize + 'px; '
+                         + 'height: ' + _options.iconSize + 'px; '
+                         + 'float: left; margin-top: 1px;"></i>';
+                } else if ($(this).attr('title')!=undefined) {
                     return $(this).attr('title');
                 } else {
                     return $(this).text();
                 }
             }).toArray();
-            
+
             //Convert all the values into a comma delimited string    
             var title = selectedItems.join(", ");
             
@@ -241,7 +254,7 @@
             if(!title) {
                 title = _this.options.title != undefined ? _this.options.title : _this.options.noneSelectedText;    
             }
-            
+
             this.$element.next('.bootstrap-select').find('.filter-option').html( title );
 	    },
 	    
@@ -280,8 +293,9 @@
 		},
 		
 		clickListener: function() {
-            var _this = this;
-            
+            var _this = this
+                _options = this.options;
+ 
             $('body').on('touchstart.dropdown', '.dropdown-menu', function (e) { e.stopPropagation(); });
             
            
@@ -290,7 +304,6 @@
                 var clickedIndex = $(this).parent().index(),
                     $this = $(this).parent(),
                     $select = $this.parents('.bootstrap-select');
-                
                 
                 //Dont close on multi choice menu    
                 if(_this.multiple) {
@@ -316,9 +329,19 @@
                             $select.prev('select').find('option').eq(clickedIndex).prop('selected', true).attr('selected', 'selected');
                         }
                     }
-                    
-                    
-                    $select.find('.filter-option').html($this.text());
+                    var icon = $($this).find('a').data('icon');
+                    if (icon) {
+                        var span = $select.find('.filter-option');
+                        span.empty();
+                        span.append(
+                            '<i style="background-image: url(' + icon + '); '
+                          + 'width: ' + _options.iconSize + 'px; '
+                          + 'height: ' + _options.iconSize + 'px; '
+                          + 'float: left; margin-top: 1px;"></i>');
+                    }
+                    else {
+                        $select.find('.filter-option').html($this.text());
+                    }
                     $select.find('button').focus();
 
                     // Trigger select 'change'
@@ -394,6 +417,7 @@
         style: null,
         size: 'auto',
         title: null,
+        iconSize: 16,
         selectedTextFormat : 'values',
         noneSelectedText : 'Nothing selected',
         width: null
